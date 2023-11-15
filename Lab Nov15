@@ -1,0 +1,26 @@
+%%Lab Exercise
+
+N = 8;
+d = 0.2;
+
+M = eye(4);
+M(1,2) = M(1,2)+d;
+M(3,4) = M(3,4)+d;
+
+rays_in_a = [0*ones(1,N); linspace(-pi/20, pi/20,N); 0*ones(1,N); linspace(-pi/20, pi/20,N)]
+rays_out_a = M*rays_in_a
+
+rays_in_b = [0.01*ones(1,N); linspace(-pi/20, pi/20,N); 0.01*ones(1,N); linspace(-pi/20, pi/20,N)]
+rays_out_b = M*rays_in_b
+
+figure
+hold on
+
+ray_z = [zeros(1,size(rays_in_a,2)); d*ones(1,size(rays_in_a,2))];
+plot(ray_z, [rays_in_a(1,:); rays_out_a(1,:)])
+
+
+ray_z = [zeros(1,size(rays_in_b,2)); d*ones(1,size(rays_in_b,2))];
+plot(ray_z, [rays_in_b(1,:); rays_out_b(1,:)])
+
+
