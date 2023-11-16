@@ -1,0 +1,74 @@
+
+clear all
+close all
+
+
+%% Lab Part 1
+
+N = 8;
+d = 0.2;
+
+M = eye(4);
+M(1,2) = M(1,2)+d;
+M(3,4) = M(3,4)+d;
+
+rays_in_a = [0*ones(1,N); linspace(-pi/20, pi/20,N); 0*ones(1,N); linspace(-pi/20, pi/20,N)];
+rays_out_a = M*rays_in_a;
+
+rays_in_b = [0.01*ones(1,N); linspace(-pi/20, pi/20,N); 0.01*ones(1,N); linspace(-pi/20, pi/20,N)];
+rays_out_b = M*rays_in_b;
+
+figure
+hold on
+
+ray_z = [zeros(1,size(rays_in_a,2)); d*ones(1,size(rays_in_a,2))];
+plot(ray_z, [rays_in_a(1,:); rays_out_a(1,:)], 'Color', 'Blue')
+
+
+ray_z = [zeros(1,size(rays_in_b,2)); d*ones(1,size(rays_in_b,2))];
+plot(ray_z, [rays_in_b(1,:); rays_out_b(1,:)], 'Color', 'Red')
+
+
+
+%% Lab Part 2
+
+dl = 0.2;
+de = 0.25;
+
+d = de;
+%d traveled after lens
+
+M = eye(4);
+M(1,2) = M(1,2)+d;
+M(3,4) = M(3,4)+d;
+%Defining Free-Space Propogation after lens (right side of figure)
+
+f = 0.150;
+%Focal Length
+
+Mf = eye(4);
+Mf(2,1) = Mf(2,1)-1/f;
+Mf(4,3) = Mf(4,3)-1/f;
+%Matrix for lens bending
+
+
+f_rays_out_a = M*Mf*rays_out_a;
+f_rays_out_b = M*Mf*rays_out_b;
+%Vectors for end points after lens and free space
+
+
+figure 
+hold on
+
+ray_z = [zeros(1,size(rays_in_a,2)); (dl)*ones(1,size(rays_in_a,2))];
+plot(ray_z, [rays_in_a(1,:); rays_out_a(1,:)], 'Color', 'Blue')
+plot(ray_z, [rays_in_b(1,:); rays_out_b(1,:)], 'Color', 'Red')
+
+
+ray_z = [dl*ones(1,size(rays_in_b,2)); (dl+de)*ones(1,size(rays_in_b,2))];
+
+plot(ray_z, [rays_out_a(1,:); f_rays_out_a(1,:)], 'Color', 'Blue')
+plot(ray_z, [rays_out_b(1,:); f_rays_out_b(1,:)], 'Color', 'Red')
+
+
+
