@@ -1,0 +1,237 @@
+
+
+clear all
+close all
+
+
+
+rays = importdata('lightField.mat');
+
+%% Q1
+
+w = 0.005;
+%w can be adjusted (Q1.b)
+
+NPix = 200;
+%NPix can be adjusted (Q1.c)
+
+[img, x, y] = rays2img(rays(1,:), rays(3,:), w, NPix);
+I = mat2gray(img);
+
+figure
+imshow(I)
+
+
+%% Adjust d. (Q1.d)
+
+d = 1;
+
+M = eye(4);
+M(1,2) = M(1,2)+d;
+M(3,4) = M(3,4)+d;
+
+
+rays_d = M*rays;
+
+
+[imgd, xd, yd] = rays2img(rays_d(1,:), rays_d(3,:), w, NPix);
+Id = mat2gray(imgd);
+
+
+figure
+imshow(Id)
+
+
+%% Q3
+
+%d1 = 0.029;
+
+
+%d1 = 0.000001;
+
+
+%f = 0.014;
+
+%f = 0.009
+
+%{
+for i = 1:100
+d1 = 0.011+0.005*i;
+
+f = 0.009 + 0.005*i;
+%}
+
+
+f = 0.009;
+d1 = 0.037;
+
+f = 0.09;  % this number combo ATE
+d1 = 0.37;
+
+%{
+f = 0.095;
+d1 = 0.37;
+
+f = 0.105;
+d1 = 0.36;
+
+f = 0.106;
+d1 = 0.37;
+
+%}
+
+%for i = 1:100
+
+d1 = 0.37-0.005+0.001*35;
+
+
+d2 = 1/(1/f - 1/d1);
+
+Mf = eye(4);
+Mf(2,1) = Mf(2,1)-1/f;
+Mf(4,3) = Mf(4,3)-1/f;
+%Matrix for lens bending
+
+
+Md2 = eye(4);
+Md2(1,2) = Md2(1,2)+d2;
+Md2(3,4) = Md2(3,4)+d2;
+%Matrix for light propogation (image plane)
+
+
+
+raysSharp = Md2*Mf*rays;
+
+NPix = 2000;
+
+[imgSharp, xd, yd] = rays2img(-raysSharp(1,:), raysSharp(3,:), w, NPix);
+IS = mat2gray(imgSharp);
+
+
+figure
+imshow(IS)
+%end
+
+
+%{
+figure 
+hold on
+
+ray_z = [zeros(1,size(rays_in_a,2)); (dl)*ones(1,size(rays_in_a,2))];
+plot(ray_z, [rays_in_a(1,:); rays_out_a(1,:)], 'Color', 'Blue')
+plot(ray_z, [rays_in_b(1,:); rays_out_b(1,:)], 'Color', 'Red')
+%Plot before the lens
+
+
+f_rays_out_a = M*Mf*rays_out_a;
+f_rays_out_b = M*Mf*rays_out_b;
+%Vectors for end points after lens and free space
+
+
+
+for i = 1:length(rays_out_a)
+
+if abs(rays_out_a(1,i))>0.02
+    rays_out_a(:,i) = zeros(1,height(rays_out_a(:,i)));
+    f_rays_out_a(:,i) = zeros(1,height(f_rays_out_b(:,i)));
+end
+
+end
+%Turns any columns outside the range of +/- 0.02 (lens radius) into a 0
+%column
+
+
+for i = 1:length(rays_out_b)
+
+if abs(rays_out_b(1,i))>0.02
+    rays_out_b(:,i) = zeros(1,height(rays_out_b(:,i)));
+    f_rays_out_b(:,i) = zeros(1,height(f_rays_out_b(:,i)));
+end
+
+end
+%Turns any columns outside the range of +/- 0.02 (lens radius) into a 0
+%column
+
+rays_out_a(:,any(rays_out_a==0))=[];
+rays_out_b(:,any(rays_out_b==0))=[];
+%Deletes 0 columns
+
+f_rays_out_a(:,any(f_rays_out_a==0))=[];
+f_rays_out_b(:,any(f_rays_out_b==0))=[];
+%Deletes 0 columns
+
+ray_z_a = [dl*ones(1,size(f_rays_out_a,2)); (dl+de)*ones(1,size(f_rays_out_a,2))];
+ray_z_b = [dl*ones(1,size(f_rays_out_b,2)); (dl+de)*ones(1,size(f_rays_out_b,2))];
+
+plot(ray_z_a, [rays_out_a(1,:); f_rays_out_a(1,:)], 'Color', 'Blue')
+plot(ray_z_b, [rays_out_b(1,:); f_rays_out_b(1,:)], 'Color', 'Red')
+%Plot after the lens
+
+xlim([0,1])
+
+
+%}
+
+
+
+
+
+
+
+
+
+
+
+
+
+function [img,x,y] = rays2img(rays_x,rays_y,width,Npixels)
+% rays2img - Simulates the operation of a camera sensor, where each pixel
+% simply collects (i.e., counts) all of the rays that intersect it. The
+% image sensor is assumed to be square with 100% fill factor (no dead
+% areas) and 100% quantum efficiency (each ray intersecting the sensor is
+% collected).
+%
+% inputs:
+% rays_x: A 1 x N vector representing the x position of each ray in meters.
+% rays_y: A 1 x N vector representing the y position of each ray in meters.
+% width: A scalar that specifies the total width of the image sensor in 
+%   meters.
+% Npixels: A scalar that specifies the number of pixels along one side of 
+%   the square image sensor.
+%
+% outputs:
+% img: An Npixels x Npixels matrix representing a grayscale image captured 
+%   by an image sensor with a total Npixels^2 pixels.
+% x: A 1 x 2 vector that specifies the x positions of the left and right 
+%   edges of the imaging sensor in meters.
+% y: A 1 x 2 vector that specifies the y positions of the bottom and top 
+%   edges of the imaging sensor in meters.
+%
+% Matthew Lew 11/27/2018
+% 11/26/2021 - edited to create grayscale images from a rays_x, rays_y
+% vectors
+% 11/9/2022 - updated to fix axis flipping created by histcounts2()
+
+% eliminate rays that are off screen
+onScreen = abs(rays_x)<width/2 & abs(rays_y)<width/2;
+x_in = rays_x(onScreen);
+y_in = rays_y(onScreen);
+
+% separate screen into pixels, calculate coordinates of each pixel's edges
+mPerPx = width/Npixels;
+Xedges = ((1:Npixels+1)-(1+Npixels+1)/2)*mPerPx;
+Yedges = ((1:Npixels+1)-(1+Npixels+1)/2)*mPerPx;
+
+% count rays at each pixel within the image
+img = histcounts2(y_in,x_in,Yedges,Xedges);    % histcounts2 for some reason assigns x to rows, y to columns
+
+
+% rescale img to uint8 dynamic range
+img = uint8(round(img/max(img(:)) * 255));
+x = Xedges([1 end]);
+y = Yedges([1 end]);
+
+% figure;
+% image(x_edges([1 end]),y_edges([1 end]),img); axis image xy;
+end
+
